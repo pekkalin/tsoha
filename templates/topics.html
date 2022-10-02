@@ -1,0 +1,43 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="card bg-white">
+    <div class="card-body p-5">
+        <form action="{{url_for('topic')}}" method="post" class="mb-3 mt-md-4">
+            <div class="mb-3">
+                <label for="topic" class="form-label">Lisää uusi keskustelualue</label>
+                <input type="text" class="form-control" id="topic" name="topic">
+            </div>
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="restricted" name="restricted">
+                <label class="form-check-label" for="restricted">Rajattu pääsy</label>
+            </div>
+            <br />
+            <div class="d-grid col-2">
+                <button class="btn btn-outline-dark" type="submit">Lisää</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<br />
+<div class="card bg-white">
+    <div class="card-body p-5">
+        {% for topic in topics %}
+        <div class="row mb-3">
+            <div class="col-md-8 bg-light">
+                <a href="{{url_for('thread', topic_id=topic.id)}}" class="text-secondary">{{ topic.topic_name }}</a>
+            </div>
+            <div class="col-md-1 bg-light">
+                Ketjut
+            </div>
+            <div class="col-md-1 bg-light">
+                Viestit
+            </div>
+            <div class="col-md-2 bg-light">
+                Viimeisin viesti
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

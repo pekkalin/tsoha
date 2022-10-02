@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="row d-flex justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6">
+        <div class="card bg-white">
+            <div class="card-body p-5">
+                {% for message in get_flashed_messages() %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+                <form action="{{url_for('register')}}" method="post" class="mb-3 mt-md-4">
+                    <h2 class="fw-bold mb-2 text ">Pyddit</h2>
+                    <p class=" mb-5">Rekisteröidy</p>
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Käyttäjätunnus</label>
+                        <input type="text" class="form-control" id="username" name="username" maxlength="50">
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Salasana</label>
+                        <input type="password" class="form-control" id="password" name="password" maxlength="150"
+                            placeholder="*******">
+                    </div>
+                    <div class="mb-3">
+                        <label for="password2" class="form-label">Salasana toiseen kertaan</label>
+                        <input type="password2" class="form-control" id="password2" name="password2" maxlength="150"
+                            placeholder="*******">
+                    </div>
+                    <!--<p class="small"><a class="text-primary" href="forget-password.html">Forgot password?</a></p>-->
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="isadmin" name="isadmin">
+                        <label class="form-check-label" for="isadmin">Admin käyttäjä</label>
+                    </div>
+                    <hr />
+                    <div class="d-grid">
+                        <button class="btn btn-outline-dark" type="submit">Luo tunnus</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
