@@ -1,5 +1,6 @@
 from crypt import methods
 from datetime import datetime
+from operator import le
 from os import getenv
 
 from flask import Flask, flash, redirect, render_template, request, url_for
@@ -9,7 +10,7 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import check_password_hash, generate_password_hash
 
 import service
-from model import Topic
+from model import Thread, Topic
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = getenv("DATABASE_URL")
@@ -71,14 +72,18 @@ def register():
 
 @app.route("/topic", methods=['GET', 'POST'])
 def topic():
+    topics = []
     if request.method == "GET":
+        print("getting all topics..")
         topics = service.get_all_topics()
+        print(topics)
 
     elif request.method == "POST":
         restricted = False
         if 'restricted' in request.form:
             restricted = True
 
+        # remove hardcoded user!
         service.add_topic(Topic(topic_name=request.form['topic'],
                                 restricted_access=restricted, created="", created_by=1, updated=""))
         topics = service.get_all_topics()
@@ -86,10 +91,31 @@ def topic():
     return render_template("topics.html", topics=topics)
 
 
-@app.route("/thread/<int:topic_id>", methods=['GET', 'POST'])
-def thread(topic_id):
-    print("Topic id: ", topic_id)
-    return render_template("threads.html")
+@app.route("/thread/<int:topic>")
+def thread(topic):
+    threads = service.get_threads_by_topic(topic)
+    print(threads)
+    if threads == None:
+        threads = []
+
+    return render_template("threads.html", topic_id=topic, threads=threads)
+
+
+@app.route("/thread", methods=['POST'])
+def new_thread():
+    topic_id = request.form['topic_id']
+    print("ADDNING THREAD TO TOPIC ", topic_id)
+    thread_title = request.form['thread']
+    print("thread title ", thread_title)
+
+    if len(thread_title) < 1:
+        flash("Viestiketjun otsikko ei voi olla tyhjä!")
+        return redirect(url_for('thread', topic=topic_id))
+
+    # remove hardcoded user!
+    service.add_new_thread(Thread(
+        topic_id=topic_id, title=thread_title, created="", created_by=1, updated=""))
+    return redirect(url_for('thread', topic=topic_id))
 
 
 if __name__ == "__main__":

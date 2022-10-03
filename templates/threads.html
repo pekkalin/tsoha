@@ -2,24 +2,32 @@
 {% block content %}
 <div class="card bg-white">
     <div class="card-body p-5">
-        <form action="{{url_for('topic')}}" method="post" class="mb-3 mt-md-4">
+        <form action="{{url_for('new_thread')}}" method="post" class="mb-3 mt-md-4">
             <div class="mb-3">
-                <label for="thread" class="form-label">Lisää uusi viestiketju</label>
+                <label for="thread" class="form-label">Uusi viestiketju</label>
                 <input type="text" class="form-control" id="thread" name="thread">
             </div>
             <br />
             <div class="d-grid col-2">
-                <button class="btn btn-outline-dark" type="submit">Lisää</button>
+                <button class="btn btn-outline-dark" type="submit">Lisää viestiketju</button>
             </div>
+            <hr />
+            <div class="form-floating">
+                <textarea class="form-control" placeholder="Kirjoita viestisi tähän" id="message" name="message"
+                    style="height: 100px"></textarea>
+                <label for="message">Viesti</label>
+            </div>
+            <input type="hidden" id="topic_id" name="topic_id" value={{topic_id}} />
         </form>
     </div>
 </div>
-
+<br />
 <div class="card bg-white">
     <div class="card-body p-5">
+        {% for thread in threads %}
         <div class="row mb-3">
             <div class="col-md-8 bg-light">
-                Aihe
+                {{ thread.title }}
             </div>
             <div class="col-md-2 bg-light">
                 Vastauksia / Katsottu
@@ -28,6 +36,7 @@
                 Viimeisin viesti
             </div>
         </div>
+        {% endfor %}
     </div>
 </div>
 {% endblock %}
