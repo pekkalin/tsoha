@@ -10,7 +10,7 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import check_password_hash, generate_password_hash
 
 import service
-from model import Thread, Topic
+from model import Message, MThread, Topic
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = getenv("DATABASE_URL")
@@ -63,7 +63,7 @@ def register():
             flash(f"Käyttäjätunnus {username} on jo käytössä!")
             return render_template("register.html")
 
-        if not service.register(username, pass1, admin):
+        if None == service.register(username, pass1, admin):
             flash("Rekisteröinti epäonnistui!")
             return render_template("register.html")
 
@@ -74,9 +74,7 @@ def register():
 def topic():
     topics = []
     if request.method == "GET":
-        print("getting all topics..")
         topics = service.get_all_topics()
-        print(topics)
 
     elif request.method == "POST":
         restricted = False
@@ -93,29 +91,52 @@ def topic():
 
 @app.route("/thread/<int:topic>")
 def thread(topic):
-    threads = service.get_threads_by_topic(topic)
-    print(threads)
-    if threads == None:
-        threads = []
+    t = service.get_topic_by_id(topic)
 
-    return render_template("threads.html", topic_id=topic, threads=threads)
+    if t == None:
+        return redirect(url_for('topic'))
+
+    threads = service.get_threads_by_topic(topic)
+
+    return render_template("threads.html", topic_id=topic, topic_name=t.topic_name, threads=threads)
 
 
 @app.route("/thread", methods=['POST'])
 def new_thread():
     topic_id = request.form['topic_id']
-    print("ADDNING THREAD TO TOPIC ", topic_id)
+    #print("ADDNING THREAD TO TOPIC ", topic_id)
     thread_title = request.form['thread']
-    print("thread title ", thread_title)
+    #print("thread title ", thread_title)
+    content = request.form['message']
 
     if len(thread_title) < 1:
         flash("Viestiketjun otsikko ei voi olla tyhjä!")
         return redirect(url_for('thread', topic=topic_id))
 
+    if len(content) < 1:
+        flash("Viesti ei voi olla tyhjä!")
+        return redirect(url_for('thread', topic=topic_id))
+
     # remove hardcoded user!
-    service.add_new_thread(Thread(
-        topic_id=topic_id, title=thread_title, created="", created_by=1, updated=""))
+    thread = MThread(
+        topic_id=topic_id, title=thread_title, created="", created_by=1, updated="")
+
+    thread_id = service.add_new_thread(thread)
+    print("Thread created by id", thread_id)
+
+    # remove hardcoded user!
+    message = Message(thread_id=thread_id, content=content,
+                      created="", created_by=1, updated="")
+
+    service.add_message(message)
+
     return redirect(url_for('thread', topic=topic_id))
+
+
+@app.route("/message/<int:thread_id>")
+def message(thread_id):
+    messages = service.get_messages_by_thread_id(thread_id)
+    return render_template("messages.html", messages=messages)
 
 
 if __name__ == "__main__":

@@ -4,7 +4,7 @@
     <div class="card-body p-5">
         <form action="{{url_for('new_thread')}}" method="post" class="mb-3 mt-md-4">
             <div class="mb-3">
-                <label for="thread" class="form-label">Uusi viestiketju</label>
+                <label for="thread" class="form-label">Uusi viestiketju ({{ topic_name }})</label>
                 <input type="text" class="form-control" id="thread" name="thread">
             </div>
             <br />
@@ -27,7 +27,7 @@
         {% for thread in threads %}
         <div class="row mb-3">
             <div class="col-md-8 bg-light">
-                {{ thread.title }}
+                <a href="{{url_for('message',thread_id=thread.id)}}" class="text-secondary">{{ thread.title }}</a>
             </div>
             <div class="col-md-2 bg-light">
                 Vastauksia / Katsottu

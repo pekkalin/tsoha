@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="card bg-white">
+    <div class="card-body p-5">
+        {% for message in messages %}
+        <div class="row mb-3">
+            <div class="col-md-2 bg-light">
+                Köyttäjä..
+            </div>
+            <div class="col-md-10 bg-light">
+                {{message.content}}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
