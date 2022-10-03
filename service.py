@@ -8,7 +8,8 @@ from app import db
 from model import Message, MThread, Topic
 
 SQL_REGISTER = "INSERT INTO users (username, password, is_admin) VALUES (:username, :password, :is_admin) RETURNING id"
-SQL_GET_USER_BY_USERNAME = "SELECT username FROM  users WHERE username=:username"
+SQL_GET_USER_BY_USERNAME = "SELECT id, username, password FROM users WHERE username=:username"
+SQL_GET_USER_BY_ID = "SELECT id, username FROM users WHERE id=:id"
 SQL_GET_TOPIC_BY_ID = "SELECT id, topic_name, restricted_access, created, created_by, updated FROM topics WHERE id=:id"
 SQL_GET_ALL_TOPICS = "SELECT id, topic_name, restricted_access, created, created_by, updated FROM topics"
 SQL_INSERT_TOPIC = "INSERT INTO topics (topic_name, restricted_access, created_by) VALUES (:topic_name, :restricted_access, :created_by) RETURNING id"
@@ -36,6 +37,13 @@ def register(username, password, is_admin):
 def find_user_by_username(username: str):
     try:
         return db.session.execute(SQL_GET_USER_BY_USERNAME, {"username": username}).fetchone()
+    except Exception as e:
+        db.session.close()
+
+
+def find_user_by_id(id: int):
+    try:
+        return db.session.execute(SQL_GET_USER_BY_ID, {"id": id}).fetchone()
     except Exception as e:
         db.session.close()
 

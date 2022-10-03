@@ -5,16 +5,22 @@
     <div class="col-12 col-md-8 col-lg-6">
         <div class="card bg-white">
             <div class="card-body p-5">
-                <form class="mb-3 mt-md-4">
+                {% for message in get_flashed_messages() %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+                <form action="{{url_for('login')}}" method="post" class="mb-3 mt-md-4">
                     <h2 class="fw-bold mb-2 text ">Pyddit</h2>
                     <p class=" mb-5">Kirjaudu sisään</p>
                     <div class="mb-3">
                         <label for="username" class="form-label ">Käyttäjätunnus</label>
-                        <input type="text" class="form-control" id="username">
+                        <input type="text" class="form-control" id="username" name="username">
                     </div>
                     <div class="mb-3">
                         <label for="password" class="form-label ">Salasana</label>
-                        <input type="password" class="form-control" id="password" placeholder="*******">
+                        <input type="password" class="form-control" id="password" name="password" placeholder="*******">
                     </div>
                     <!-- <p class="small"><a class="text-primary" href="forget-password.html">Forgot password?</a></p> -->
                     <div class="d-grid">

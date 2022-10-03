@@ -2,12 +2,15 @@ from crypt import methods
 from datetime import datetime
 from operator import le
 from os import getenv
+from re import U
 
 from flask import Flask, flash, redirect, render_template, request, url_for
 from flask_login import (LoginManager, UserMixin, current_user, login_required,
                          login_user, logout_user)
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import check_password_hash, generate_password_hash
+#from wtforms import StringField, PasswordField, SubmitField
+from wtforms.validators import DataRequired
 
 import service
 from model import Message, MThread, Topic
@@ -19,6 +22,21 @@ app.secret_key = getenv("SECRET_KEY")
 
 db = SQLAlchemy(app)
 
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = "login"
+
+
+class LoginUser(UserMixin):
+    def __init__(self, id):
+        self.id = id
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    dbuser = service.find_user_by_id(int(user_id))
+    return LoginUser(dbuser['id'])
+
 
 @app.route("/")
 def index():
@@ -27,7 +45,29 @@ def index():
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
-    return render_template("login.html")
+    if request.method == 'POST':
+        user_name = request.form['username']
+        password = request.form['password']
+        user = service.find_user_by_username(user_name)
+        if user != None:
+            if check_password_hash(user['password'], password):
+                login_user(LoginUser(user['id']))
+                return redirect(url_for('topic'))
+            else:
+                flash("Virheellinen salasana!")
+                return render_template("login.html")
+        else:
+            return render_template("login.html")
+    elif request.method == 'GET':
+        return render_template("login.html")
+
+
+@app.route("/logout", methods=['GET', 'POST'])
+@login_required
+def logout():
+    logout_user()
+    flash("Sinut on uloskirjattu palvelusta!")
+    return redirect(url_for('login'))
 
 
 @app.route("/register", methods=['GET', 'POST'])
@@ -71,6 +111,7 @@ def register():
 
 
 @app.route("/topic", methods=['GET', 'POST'])
+@login_required
 def topic():
     topics = []
     if request.method == "GET":
@@ -90,6 +131,7 @@ def topic():
 
 
 @app.route("/thread/<int:topic>")
+@login_required
 def thread(topic):
     t = service.get_topic_by_id(topic)
 
@@ -102,6 +144,7 @@ def thread(topic):
 
 
 @app.route("/thread", methods=['POST'])
+@login_required
 def new_thread():
     topic_id = request.form['topic_id']
     #print("ADDNING THREAD TO TOPIC ", topic_id)
@@ -134,6 +177,7 @@ def new_thread():
 
 
 @app.route("/message/<int:thread_id>")
+@login_required
 def message(thread_id):
     messages = service.get_messages_by_thread_id(thread_id)
     return render_template("messages.html", messages=messages)
