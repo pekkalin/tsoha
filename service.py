@@ -24,7 +24,8 @@ SQL_GET_MESSAGES_BY_THREAD_ID = "SELECT id, thread_id, content, created, created
 
 SQL_GET_TOPIC_PAGE_DATA = """SELECT DISTINCT topics.id, topics.topic_name, topics.restricted_access, topics.created, topics.created_by, topics.updated,
                                 (SELECT COUNT(*) FROM threads WHERE topic_id=topics.id) as thread_count,
-                                (SELECT COUNT (*) FROM messages, threads WHERE threads.topic_id=topics.id AND messages.thread_id = threads.id) as message_count
+                                (SELECT COUNT (*) FROM messages, threads WHERE threads.topic_id=topics.id AND messages.thread_id = threads.id) as message_count,
+                                (SELECT MAX(created) FROM messages) as latest_msg
                                 FROM topics, threads, messages"""
 
 
