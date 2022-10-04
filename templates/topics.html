@@ -30,10 +30,10 @@
                 <a href="{{url_for('thread',topic=topic.id)}}" class="text-secondary">{{ topic.topic_name }}</a>
             </div>
             <div class="col-md-1 bg-light">
-                Ketjut
+                {{ topic.thread_count }}
             </div>
             <div class="col-md-1 bg-light">
-                Viestit
+                {{ topic.message_count }}
             </div>
             <div class="col-md-2 bg-light">
                 Viimeisin viesti

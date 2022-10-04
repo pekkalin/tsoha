@@ -38,11 +38,13 @@ class LoginUser(UserMixin):
 @login_manager.user_loader
 def load_user(user_id):
     dbuser = service.find_user_by_id(int(user_id))
-    login_user = LoginUser(dbuser['id'])
-    login_user.username = dbuser['username']
-    login_user.is_admin = dbuser['is_admin']
-    login_user.last_login = dbuser['last_login']
-    return login_user
+    if dbuser:
+        login_user = LoginUser(dbuser['id'])
+        login_user.username = dbuser['username']
+        login_user.is_admin = dbuser['is_admin']
+        login_user.last_login = dbuser['last_login']
+        return login_user
+    return None
 
 
 @app.route("/")
@@ -52,6 +54,7 @@ def index():
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
+    print("IN LOGIN")
     if request.method == 'POST':
         user_name = request.form['username']
         password = request.form['password']

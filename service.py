@@ -18,7 +18,14 @@ SQL_INSERT_TOPIC = "INSERT INTO topics (topic_name, restricted_access, created_b
 SQL_GET_THREADS_BY_TOPIC = "SELECT id, topic_id, title, created, created_by, updated FROM threads WHERE topic_id=:topic_id"
 SQL_ADD_NEW_THREAD = "INSERT INTO threads (topic_id, title, created_by) VALUES (:topic_id, :title, :created_by) RETURNING id"
 SQL_ADD_NEW_MESSAGE = "INSERT INTO messages (thread_id, content, created_by) VALUES (:thread_id, :content, :created_by) RETURNING id"
+SQL_COUNT_TOPIC_THREADS = "SELECT COUNT(*) FROM THREADS WHERE topic_id=:topic_id"
+SQL_COUNT_TOPIC_MESSAGES = "SELECT COUNT (*) FROM messages, threads WHERE threads.topic_id=:topic_id AND messages.thread_id = threads.id"
 SQL_GET_MESSAGES_BY_THREAD_ID = "SELECT id, thread_id, content, created, created_by, updated  FROM messages WHERE thread_id=:thread_id"
+
+SQL_GET_TOPIC_PAGE_DATA = """SELECT DISTINCT topics.id, topics.topic_name, topics.restricted_access, topics.created, topics.created_by, topics.updated,
+                                (SELECT COUNT(*) FROM threads WHERE topic_id=topics.id) as thread_count,
+                                (SELECT COUNT (*) FROM messages, threads WHERE threads.topic_id=topics.id AND messages.thread_id = threads.id) as message_count
+                                FROM topics, threads, messages"""
 
 
 def register(username, password, is_admin):
@@ -67,7 +74,7 @@ def update_last_login(id, date_and_time):
 
 def get_all_topics():
     try:
-        return db.session.execute(SQL_GET_ALL_TOPICS).fetchall()
+        return db.session.execute(SQL_GET_TOPIC_PAGE_DATA).fetchall()
     except Exception as e:
         db.session.close()
 
@@ -93,6 +100,20 @@ def add_topic(topic: Topic):
         db.session.commit()
 
     return topic_id
+
+
+def count_threads_by_topic(topic_id: int):
+    try:
+        return db.session.execute(SQL_COUNT_TOPIC_THREADS, {"topic_id": topic_id})
+    except Exception as e:
+        db.session.close()
+
+
+def count_messages_by_topic(topic_id: int):
+    try:
+        return db.session.execute(SQL_COUNT_TOPIC_MESSAGES, {"topic_id": topic_id})
+    except Exception as e:
+        db.session.close()
 
 
 def get_threads_by_topic(topic_id: int):
