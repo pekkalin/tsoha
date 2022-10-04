@@ -3,13 +3,13 @@ from datetime import datetime
 from operator import le
 from os import getenv
 from re import U
+from tkinter import NO
 
 from flask import Flask, flash, redirect, render_template, request, url_for
 from flask_login import (LoginManager, UserMixin, current_user, login_required,
                          login_user, logout_user)
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import check_password_hash, generate_password_hash
-#from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired
 
 import service
@@ -30,12 +30,19 @@ login_manager.login_view = "login"
 class LoginUser(UserMixin):
     def __init__(self, id):
         self.id = id
+        self.username = None
+        self.is_admin = None
+        self.last_login = None
 
 
 @login_manager.user_loader
 def load_user(user_id):
     dbuser = service.find_user_by_id(int(user_id))
-    return LoginUser(dbuser['id'])
+    login_user = LoginUser(dbuser['id'])
+    login_user.username = dbuser['username']
+    login_user.is_admin = dbuser['is_admin']
+    login_user.last_login = dbuser['last_login']
+    return login_user
 
 
 @app.route("/")
@@ -49,15 +56,18 @@ def login():
         user_name = request.form['username']
         password = request.form['password']
         user = service.find_user_by_username(user_name)
+
         if user != None:
             if check_password_hash(user['password'], password):
                 login_user(LoginUser(user['id']))
+                service.update_last_login(user.id, datetime.now())
                 return redirect(url_for('topic'))
             else:
                 flash("Virheellinen salasana!")
-                return render_template("login.html")
+                return redirect(url_for('login'))
         else:
-            return render_template("login.html")
+            flash(f"Käyttäjää {user_name} ei löydy!")
+            return redirect(url_for('login'))
     elif request.method == 'GET':
         return render_template("login.html")
 
@@ -99,6 +109,7 @@ def register():
             admin = True
 
         user = service.find_user_by_username(username)
+
         if (user):
             flash(f"Käyttäjätunnus {username} on jo käytössä!")
             return render_template("register.html")
@@ -106,8 +117,10 @@ def register():
         if None == service.register(username, pass1, admin):
             flash("Rekisteröinti epäonnistui!")
             return render_template("register.html")
+        else:
+            flash(f"Käyttäjä {username} lisätty onnistuneesti!")
 
-    return render_template('index.html')
+    return render_template('login.html')
 
 
 @app.route("/topic", methods=['GET', 'POST'])
@@ -122,9 +135,8 @@ def topic():
         if 'restricted' in request.form:
             restricted = True
 
-        # remove hardcoded user!
         service.add_topic(Topic(topic_name=request.form['topic'],
-                                restricted_access=restricted, created="", created_by=1, updated=""))
+                                restricted_access=restricted, created="", created_by=current_user.id, updated=""))
         topics = service.get_all_topics()
 
     return render_template("topics.html", topics=topics)
@@ -147,9 +159,7 @@ def thread(topic):
 @login_required
 def new_thread():
     topic_id = request.form['topic_id']
-    #print("ADDNING THREAD TO TOPIC ", topic_id)
     thread_title = request.form['thread']
-    #print("thread title ", thread_title)
     content = request.form['message']
 
     if len(thread_title) < 1:
@@ -160,16 +170,14 @@ def new_thread():
         flash("Viesti ei voi olla tyhjä!")
         return redirect(url_for('thread', topic=topic_id))
 
-    # remove hardcoded user!
     thread = MThread(
-        topic_id=topic_id, title=thread_title, created="", created_by=1, updated="")
+        topic_id=topic_id, title=thread_title, created="", created_by=current_user.id, updated="")
 
     thread_id = service.add_new_thread(thread)
     print("Thread created by id", thread_id)
 
-    # remove hardcoded user!
     message = Message(thread_id=thread_id, content=content,
-                      created="", created_by=1, updated="")
+                      created="", created_by=current_user.id, updated="")
 
     service.add_message(message)
 

@@ -1,5 +1,6 @@
 import re
 from datetime import datetime
+from tkinter.font import BOLD
 from xmlrpc.client import Boolean
 
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -9,7 +10,8 @@ from model import Message, MThread, Topic
 
 SQL_REGISTER = "INSERT INTO users (username, password, is_admin) VALUES (:username, :password, :is_admin) RETURNING id"
 SQL_GET_USER_BY_USERNAME = "SELECT id, username, password FROM users WHERE username=:username"
-SQL_GET_USER_BY_ID = "SELECT id, username FROM users WHERE id=:id"
+SQL_GET_USER_BY_ID = "SELECT id, username, is_admin, last_login FROM users WHERE id=:id"
+SQL_UPDATE_LAST_LOGIN = "UPDATE users SET last_login=:last_login WHERE id=:id"
 SQL_GET_TOPIC_BY_ID = "SELECT id, topic_name, restricted_access, created, created_by, updated FROM topics WHERE id=:id"
 SQL_GET_ALL_TOPICS = "SELECT id, topic_name, restricted_access, created, created_by, updated FROM topics"
 SQL_INSERT_TOPIC = "INSERT INTO topics (topic_name, restricted_access, created_by) VALUES (:topic_name, :restricted_access, :created_by) RETURNING id"
@@ -45,7 +47,22 @@ def find_user_by_id(id: int):
     try:
         return db.session.execute(SQL_GET_USER_BY_ID, {"id": id}).fetchone()
     except Exception as e:
+        print(e)
         db.session.close()
+
+
+def update_last_login(id, date_and_time):
+    update_succeed: Boolean = True
+    try:
+        db.session.execute(SQL_UPDATE_LAST_LOGIN, {
+                           "last_login": date_and_time, "id": id})
+    except Exception as e:
+        update_succeed = False
+        db.session.close()
+    else:
+        db.session.commit()
+
+    return update_succeed
 
 
 def get_all_topics():
