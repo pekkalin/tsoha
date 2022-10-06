@@ -165,6 +165,7 @@ def thread(topic):
         return redirect(url_for('topic'))
 
     threads = service.get_threads_by_topic(topic)
+    print(threads)
 
     return render_template("threads.html", topic_id=topic, topic_name=t.topic_name, threads=threads)
 
@@ -198,11 +199,11 @@ def new_thread():
     return redirect(url_for('thread', topic=topic_id))
 
 
-@app.route("/message/<int:thread_id>")
+@app.route("/message/<int:thread_id>/<int:topic_id>")
 @login_required
-def message(thread_id):
+def message(thread_id, topic_id):
     messages = service.get_messages_by_thread_id(thread_id)
-    return render_template("messages.html", messages=messages)
+    return render_template("messages.html", messages=messages, topic_id=topic_id)
 
 
 if __name__ == "__main__":

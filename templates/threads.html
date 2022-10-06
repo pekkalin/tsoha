@@ -24,19 +24,32 @@
 <br />
 <div class="card bg-white">
     <div class="card-body p-5">
+        <thead>
+            <div class="row mb-3">
+                <div class="col-md-8 bg-light">Viestiketju</div>
+                <div class="col-md-2 bg-light">Viestien määrä</div>
+                <div class="col-md-2 bg-light">Viimeisin viesti</div>
+            </div>
+        </thead>
         {% for thread in threads %}
         <div class="row mb-3">
             <div class="col-md-8 bg-light">
-                <a href="{{url_for('message',thread_id=thread.id)}}" class="text-secondary">{{ thread.title }}</a>
+                <a href="{{url_for('message',thread_id=thread.id, topic_id=topic_id)}}" class="text-secondary">{{
+                    thread.title }}</a>
             </div>
             <div class="col-md-2 bg-light">
-                Vastauksia / Katsottu
+                {{thread.thread_count}} kpl
             </div>
             <div class="col-md-2 bg-light">
-                Viimeisin viesti
+                {{ thread.latest_msg.strftime("%d.%m.%Y %H:%M") }}
             </div>
         </div>
         {% endfor %}
+        <br />
+        <div class="d-grid col-1">
+            <a class="btn btn-sm btn-outline-dark" href="{{url_for('topic')}}" role="button">&lt;&lt; forum</a>
+        </div>
     </div>
+</div>
 </div>
 {% endblock %}

@@ -13,9 +13,9 @@ SQL_GET_USER_BY_USERNAME = "SELECT id, username, password FROM users WHERE usern
 SQL_GET_USER_BY_ID = "SELECT id, username, is_admin, last_login FROM users WHERE id=:id"
 SQL_UPDATE_LAST_LOGIN = "UPDATE users SET last_login=:last_login WHERE id=:id"
 SQL_GET_TOPIC_BY_ID = "SELECT id, topic_name, restricted_access, created, created_by, updated FROM topics WHERE id=:id"
-SQL_GET_ALL_TOPICS = "SELECT id, topic_name, restricted_access, created, created_by, updated FROM topics"
+#SQL_GET_ALL_TOPICS = "SELECT id, topic_name, restricted_access, created, created_by, updated FROM topics"
 SQL_INSERT_TOPIC = "INSERT INTO topics (topic_name, restricted_access, created_by) VALUES (:topic_name, :restricted_access, :created_by) RETURNING id"
-SQL_GET_THREADS_BY_TOPIC = "SELECT id, topic_id, title, created, created_by, updated FROM threads WHERE topic_id=:topic_id"
+#SQL_GET_THREADS_BY_TOPIC = "SELECT id, topic_id, title, created, created_by, updated FROM threads WHERE topic_id=:topic_id"
 SQL_ADD_NEW_THREAD = "INSERT INTO threads (topic_id, title, created_by) VALUES (:topic_id, :title, :created_by) RETURNING id"
 SQL_ADD_NEW_MESSAGE = "INSERT INTO messages (thread_id, content, created_by) VALUES (:thread_id, :content, :created_by) RETURNING id"
 SQL_COUNT_TOPIC_THREADS = "SELECT COUNT(*) FROM THREADS WHERE topic_id=:topic_id"
@@ -29,6 +29,11 @@ SQL_GET_TOPIC_PAGE_DATA = """SELECT DISTINCT topics.id, topics.topic_name, topic
                                 FROM topics"""
 
 SQL_GET_RESTRICTED_TOPICS = "SELECT user_id, topic_id FROM restricted_topic_users"
+
+SQL_GET_THREADS_PAGE_DATA = """SELECT threads.id, threads.topic_id, threads.title, threads.created, threads.created_by, threads.updated,
+                                (SELECT COUNT(*) FROM messages WHERE threads.topic_id=:topic_id AND messages.thread_id = threads.id) as thread_count,
+                                (SELECT MAX(messages.created) FROM messages WHERE messages.thread_id = threads.id) as latest_msg
+                                FROM threads WHERE threads.topic_id=:topic_id """
 
 
 def register(username, password, is_admin):
@@ -129,8 +134,9 @@ def count_messages_by_topic(topic_id: int):
 
 def get_threads_by_topic(topic_id: int):
     try:
-        return db.session.execute(SQL_GET_THREADS_BY_TOPIC, {"topic_id": topic_id}).fetchall()
+        return db.session.execute(SQL_GET_THREADS_PAGE_DATA, {"topic_id": topic_id}).fetchall()
     except Exception as e:
+        print(e)
         db.session.close()
 
 

@@ -2,16 +2,41 @@
 {% block content %}
 <div class="card bg-white">
     <div class="card-body p-5">
+        <form action="{{url_for('new_thread')}}" method="post" class="mb-3 mt-md-4">
+            <div class="mb-3">
+                <label for="thread" class="form-label">Uusi viesti</label>
+                <input type="text" class="form-control" id="thread" name="thread">
+            </div>
+            <div class="form-floating">
+                <textarea class="form-control" placeholder="Kirjoita viestisi tähän" id="message" name="message"
+                    style="height: 100px"></textarea>
+                <label for="message">Viesti</label>
+            </div>
+            <br />
+            <div class="d-grid col-2">
+                <button class="btn btn-outline-dark" type="submit">Lisää viesti</button>
+            </div>
+        </form>
+    </div>
+</div>
+<br />
+<div class="card bg-white">
+    <div class="card-body p-5">
         {% for message in messages %}
         <div class="row mb-3">
             <div class="col-md-2 bg-light">
-                Köyttäjä..
+                {{ current_user.username}}
             </div>
             <div class="col-md-10 bg-light">
                 {{message.content}}
             </div>
         </div>
         {% endfor %}
+        <br />
+        <div class="d-grid col-2">
+            <a class="btn btn-sm btn-outline-dark" href="{{ url_for('thread', topic=topic_id) }}" role="button">&lt;&lt;
+                viestiketjut</a>
+        </div>
     </div>
 </div>
 {% endblock %}

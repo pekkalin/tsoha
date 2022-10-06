@@ -24,20 +24,28 @@
 <br />
 <div class="card bg-white">
     <div class="card-body p-5">
+        <thead>
+            <div class="row mb-3">
+                <div class="col-md-6 bg-light">Aihealue</div>
+                <div class="col-md-2 bg-light">Viestiketjuja</div>
+                <div class="col-md-2 bg-light">Viestejä</div>
+                <div class="col-md-2 bg-light">Viimeisin viesti</div>
+            </div>
+        </thead>
         {% for topic in topics %}
         <div class="row mb-3">
-            <div class="col-md-8 bg-light">
+            <div class="col-md-6 bg-light">
                 <a href="{{url_for('thread',topic=topic.id)}}" class="text-secondary">{{ topic.topic_name }}</a>
             </div>
-            <div class="col-md-1 bg-light">
-                {{ topic.thread_count }}
+            <div class="col-md-2 bg-light">
+                {{ topic.thread_count }} kpl
             </div>
-            <div class="col-md-1 bg-light">
-                {{ topic.message_count }}
+            <div class="col-md-2 bg-light">
+                {{ topic.message_count }} kpl
             </div>
             <div class="col-md-2 bg-light">
                 {% if topic.latest_msg %}
-                {{ topic.latest_msg }}
+                {{ topic.latest_msg.strftime("%d.%m.%Y %H:%M") }}
                 {% endif %}
             </div>
         </div>
