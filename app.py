@@ -1,16 +1,11 @@
-from crypt import methods
 from datetime import datetime
-from operator import le
 from os import getenv
-from re import U
-from tkinter import NO
 
 from flask import Flask, flash, redirect, render_template, request, url_for
 from flask_login import (LoginManager, UserMixin, current_user, login_required,
                          login_user, logout_user)
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import check_password_hash, generate_password_hash
-from wtforms.validators import DataRequired
 
 import service
 from model import Message, MThread, Topic
@@ -54,7 +49,6 @@ def index():
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
-    print("IN LOGIN")
     if request.method == 'POST':
         user_name = request.form['username']
         password = request.form['password']
@@ -117,7 +111,7 @@ def register():
             flash(f"Käyttäjätunnus {username} on jo käytössä!")
             return render_template("register.html")
 
-        if None == service.register(username, pass1, admin):
+        if None == service.register(username, generate_password_hash(pass1), admin):
             flash("Rekisteröinti epäonnistui!")
             return render_template("register.html")
         else:
