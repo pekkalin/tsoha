@@ -2,10 +2,9 @@
 {% block content %}
 <div class="card bg-white">
     <div class="card-body p-5">
-        <form action="{{url_for('new_thread')}}" method="post" class="mb-3 mt-md-4">
+        <form action="{{url_for('new_message')}}" method="post" class="mb-3 mt-md-4">
             <div class="mb-3">
-                <label for="thread" class="form-label">Uusi viesti</label>
-                <input type="text" class="form-control" id="thread" name="thread">
+                <label for="message" class="form-label">Uusi viesti</label>
             </div>
             <div class="form-floating">
                 <textarea class="form-control" placeholder="Kirjoita viestisi tähän" id="message" name="message"
@@ -16,6 +15,8 @@
             <div class="d-grid col-2">
                 <button class="btn btn-outline-dark" type="submit">Lisää viesti</button>
             </div>
+            <input type="hidden" id="thread_id" name="thread_id" value={{thread_id}} />
+            <input type="hidden" id="topic_id" name="topic_id" value={{topic_id}} />
         </form>
     </div>
 </div>

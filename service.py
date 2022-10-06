@@ -140,7 +140,7 @@ def get_threads_by_topic(topic_id: int):
         db.session.close()
 
 
-def add_new_thread(thread: MThread) -> int:
+def add_new_thread(thread: MThread):
     thread_id: int = None
 
     try:
@@ -155,7 +155,7 @@ def add_new_thread(thread: MThread) -> int:
     return thread_id
 
 
-def add_message(message: Message) -> int:
+def add_message(message: Message):
     message_id: int = None
 
     try:

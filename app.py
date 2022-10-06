@@ -203,7 +203,20 @@ def new_thread():
 @login_required
 def message(thread_id, topic_id):
     messages = service.get_messages_by_thread_id(thread_id)
-    return render_template("messages.html", messages=messages, topic_id=topic_id)
+    return render_template("messages.html", messages=messages, thread_id=thread_id, topic_id=topic_id)
+
+
+@app.route("/message", methods=['POST'])
+def new_message():
+    thread_id = request.form['thread_id']
+    content = request.form['message']
+    topic_id = request.form['topic_id']
+
+    message = Message(thread_id=thread_id, content=content,
+                      created="", created_by=current_user.id, updated="")
+    service.add_message(message)
+
+    return redirect(url_for('message', thread_id=thread_id, topic_id=topic_id))
 
 
 if __name__ == "__main__":
