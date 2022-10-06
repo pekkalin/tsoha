@@ -129,9 +129,17 @@ def register():
 @app.route("/topic", methods=['GET', 'POST'])
 @login_required
 def topic():
-    topics = []
+    all_topics = []
+    filtered_topics = []
+    restricted_topics = []
+
     if request.method == "GET":
-        topics = service.get_all_topics()
+        all_topics = service.get_all_topics()
+        restricted_topics = service.get_restricted_topics()
+
+        # Filter restricted topics
+        filtered_topics = filter(lambda t: not t.restricted_access or t.restricted_access and (
+            current_user.id, t.id) in restricted_topics, all_topics)
 
     elif request.method == "POST":
         restricted = False
@@ -140,9 +148,12 @@ def topic():
 
         service.add_topic(Topic(topic_name=request.form['topic'],
                                 restricted_access=restricted, created="", created_by=current_user.id, updated=""))
-        topics = service.get_all_topics()
+        all_topics = service.get_all_topics()
+        # Filter restricted topics
+        filtered_topics = filter(lambda t: not t.restricted_access or t.restricted_access and (
+            current_user.id, t.id) in restricted_topics, all_topics)
 
-    return render_template("topics.html", topics=topics)
+    return render_template("topics.html", topics=filtered_topics)
 
 
 @app.route("/thread/<int:topic>")

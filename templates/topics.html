@@ -36,7 +36,9 @@
                 {{ topic.message_count }}
             </div>
             <div class="col-md-2 bg-light">
+                {% if topic.latest_msg %}
                 {{ topic.latest_msg }}
+                {% endif %}
             </div>
         </div>
         {% endfor %}

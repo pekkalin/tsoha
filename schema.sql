@@ -30,7 +30,6 @@ CREATE TABLE topics (
 CREATE TABLE restricted_topic_users (
     user_id INT NOT NULL REFERENCES users(id),
     topic_id INT NOT NULL REFERENCES topics(id),
-    grant_date TIMESTAMP DEFAULT NOW(),
     PRIMARY KEY (user_id, topic_id)
 );
 

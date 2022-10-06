@@ -28,6 +28,8 @@ SQL_GET_TOPIC_PAGE_DATA = """SELECT DISTINCT topics.id, topics.topic_name, topic
                                 (SELECT MAX(messages.created) FROM messages, threads WHERE messages.thread_id = threads.id AND threads.topic_id = topics.id) as latest_msg
                                 FROM topics"""
 
+SQL_GET_RESTRICTED_TOPICS = "SELECT user_id, topic_id FROM restricted_topic_users"
+
 
 def register(username, password, is_admin):
     hash_value = generate_password_hash(password)
@@ -84,6 +86,13 @@ def get_all_topics():
 def get_topic_by_id(id):
     try:
         return db.session.execute(SQL_GET_TOPIC_BY_ID, {"id": id}).fetchone()
+    except Exception as e:
+        db.session.close()
+
+
+def get_restricted_topics():
+    try:
+        return db.session.execute(SQL_GET_RESTRICTED_TOPICS).fetchall()
     except Exception as e:
         db.session.close()
 
