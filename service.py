@@ -187,6 +187,6 @@ def add_message(message: Message):
 
 def get_messages_by_thread_id(thread_id):
     try:
-        return db.session.execute(SQL_GET_MESSAGES_BY_THREAD_ID, {"thread_id": thread_id})
+        return db.session.execute(SQL_GET_MESSAGES_BY_THREAD_ID, {"thread_id": thread_id}).fetchall()
     except Exception as e:
         db.session.close()

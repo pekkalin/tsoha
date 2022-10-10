@@ -2,6 +2,12 @@
 {% block content %}
 <div class="card bg-white">
     <div class="card-body p-5">
+        {% for message in get_flashed_messages() %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
         <form action="{{url_for('new_thread')}}" method="post" class="mb-3 mt-md-4">
             <div class="mb-3">
                 <label for="thread" class="form-label">Uusi viestiketju ({{ topic_name }})</label>
@@ -11,7 +17,7 @@
             <div class="d-grid col-2">
                 <button class="btn btn-outline-dark" type="submit">Lisää viestiketju</button>
             </div>
-            <hr />
+            <br />
             <div class="form-floating">
                 <textarea class="form-control" placeholder="Kirjoita viestisi tähän" id="message" name="message"
                     style="height: 100px"></textarea>
@@ -22,6 +28,7 @@
     </div>
 </div>
 <br />
+{% if threads|length > 0 %}
 <div class="card bg-white">
     <div class="card-body p-5">
         <thead>
@@ -41,7 +48,9 @@
                 {{thread.thread_count}} kpl
             </div>
             <div class="col-md-2 bg-light">
+                {% if thread.latest_msg != None %}
                 {{ thread.latest_msg.strftime("%d.%m.%Y %H:%M") }}
+                {% endif %}
             </div>
         </div>
         {% endfor %}
@@ -51,5 +60,5 @@
         </div>
     </div>
 </div>
-</div>
+{% endif %}
 {% endblock %}

@@ -3,6 +3,12 @@
 {% if current_user.is_admin %}
 <div class="card bg-white">
     <div class="card-body p-5">
+        {% for message in get_flashed_messages() %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
         <form action="{{url_for('topic')}}" method="post" class="mb-3 mt-md-4">
             <div class="mb-3">
                 <label for="topic" class="form-label">Lisää uusi keskustelualue</label>
@@ -22,6 +28,7 @@
 {% endif %}
 
 <br />
+{% if topics|length > 0 %}
 <div class="card bg-white">
     <div class="card-body p-5">
         <thead>
@@ -52,4 +59,5 @@
         {% endfor %}
     </div>
 </div>
+{% endif %}
 {% endblock %}

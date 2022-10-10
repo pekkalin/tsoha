@@ -148,9 +148,9 @@ def topic():
         filtered_topics = filter(lambda t: not t.restricted_access or current_user.is_admin or t.restricted_access and (
             current_user.id, t.id) in restricted_topics, all_topics)
 
-        return render_template("topics.html", topics=filtered_topics)
+        return render_template("topics.html", topics=list(filtered_topics))
 
-    return render_template("topics.html", topics=filtered_topics)
+    return render_template("topics.html", topics=list(filtered_topics))
 
 
 @app.route("/thread/<int:topic>")
@@ -186,7 +186,6 @@ def new_thread():
         topic_id=topic_id, title=thread_title, created="", created_by=current_user.id, updated="")
 
     thread_id = service.add_new_thread(thread)
-    print("Thread created by id", thread_id)
 
     message = Message(thread_id=thread_id, content=content,
                       created="", created_by=current_user.id, updated="")
@@ -209,6 +208,10 @@ def new_message():
     thread_id = request.form['thread_id']
     content = request.form['message']
     topic_id = request.form['topic_id']
+
+    if len(content) < 1:
+        flash("Viesti ei voi olla tyhjä!")
+        return redirect(url_for('message', thread_id=thread_id, topic_id=topic_id))
 
     message = Message(thread_id=thread_id, content=content,
                       created="", created_by=current_user.id, updated="")
@@ -237,7 +240,7 @@ def admin():
             return redirect(url_for('admin', users=users, restricted_topics=restricted_topics))
         else:
             if service.add_user_access_to_restricted_topic(user_id, topic_id):
-                flash(f"Käyttäjä lisätty oikeus aihealueelle!")
+                flash(f"Käyttäjälle lisätty oikeus aihealueelle!")
             else:
                 flash("Käyttäjän lisääminen aihealueen käytttäjäksi epäonnistui!")
                 return redirect(url_for('admin', users=users, restricted_topics=restricted_topics))
