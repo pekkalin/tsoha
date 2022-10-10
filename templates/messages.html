@@ -2,7 +2,7 @@
 {% block content %}
 <div class="card bg-white">
     <div class="card-body p-5">
-        {% for message in get_flashed_messages() %}
+        {% for message in get_flashed_messages(category_filter=["add_error"]) %}
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
             {{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -30,21 +30,41 @@
 {% if messages|length > 0 %}
 <div class="card bg-white">
     <div class="card-body p-5">
-        {% for message in messages %}
-        <div class="row mb-3">
-            <div class="col-md-2 bg-light">
-                {{ current_user.username}}
-            </div>
-            <div class="col-md-10 bg-light">
-                {{message.content}}
-            </div>
+        {% for message in get_flashed_messages(category_filter=["remove_error"]) %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
         {% endfor %}
-        <br />
-        <div class="d-grid col-2">
-            <a class="btn btn-sm btn-outline-dark" href="{{ url_for('thread', topic=topic_id) }}" role="button">&lt;&lt;
-                viestiketjut</a>
-        </div>
+        <form action="{{url_for('remove_messages')}}" method="post" class="mb-3 mt-md-4">
+            {% for message in messages %}
+            <div class="row mb-3">
+                <div class="col-md-1 bg-light form-check">
+                    <input class="form-check-input" type="checkbox" value={{message.id}} id="remove"
+                        name="removable_messages">
+                </div>
+                <div class="col-md-2 bg-light">
+                    {{ current_user.username}}
+                </div>
+                <div class="col-md-9 bg-light">
+                    {{message.content}}
+                </div>
+            </div>
+            {% endfor %}
+            <br />
+            <div class="row mb-3">
+                <div class="d-grid col-2">
+                    <a class="btn btn-sm btn-outline-dark" href="{{ url_for('thread', topic=topic_id) }}"
+                        role="button">&lt;&lt;
+                        viestiketjut</a>
+                </div>
+                <div class="d-grid col-2">
+                    <button class="btn btn-sm btn-outline-dark" type="submit">Poista viesti</button>
+                </div>
+            </div>
+            <input type="hidden" id="thread_id" name="thread_id" value={{thread_id}} />
+            <input type="hidden" id="topic_id" name="topic_id" value={{topic_id}} />
+        </form>
     </div>
 </div>
 {% endif %}

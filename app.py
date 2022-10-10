@@ -162,7 +162,6 @@ def thread(topic):
         return redirect(url_for('topic'))
 
     threads = service.get_threads_by_topic(topic)
-    print(threads)
 
     return render_template("threads.html", topic_id=topic, topic_name=t.topic_name, threads=threads)
 
@@ -210,7 +209,7 @@ def new_message():
     topic_id = request.form['topic_id']
 
     if len(content) < 1:
-        flash("Viesti ei voi olla tyhjä!")
+        flash("Viesti ei voi olla tyhjä!", category='add_error')
         return redirect(url_for('message', thread_id=thread_id, topic_id=topic_id))
 
     message = Message(thread_id=thread_id, content=content,
@@ -245,6 +244,29 @@ def admin():
                 flash("Käyttäjän lisääminen aihealueen käytttäjäksi epäonnistui!")
                 return redirect(url_for('admin', users=users, restricted_topics=restricted_topics))
     return render_template("admin.html", users=users, restricted_topics=restricted_topics)
+
+
+@app.route("/message/remove", methods=['POST'])
+@login_required
+def remove_messages():
+    print(request.form.getlist('removable_messages'))
+    removables = request.form.getlist('removable_messages')
+    thread_id = request.form['thread_id']
+    topic_id = request.form['topic_id']
+
+    if len(removables) == 0:
+        flash("Valitse poistettavat viestit!", category='remove_error')
+        return redirect(url_for('message', thread_id=thread_id, topic_id=topic_id))
+
+    if service.delete_messages(removables, thread_id):
+        if service.count_messages_by_thread(thread_id) == 0:
+            service.delete_message_thread(thread_id)
+            return redirect(url_for('thread', topic=topic_id))
+        else:
+            return redirect(url_for('message', thread_id=thread_id, topic_id=topic_id))
+    else:
+        flash("Viestien poistossa tapahtui virhe", category='remove_error')
+        return redirect(url_for('message', thread_id=thread_id, topic_id=topic_id))
 
 
 if __name__ == "__main__":
