@@ -19,12 +19,17 @@ SQL_GET_TOPIC_PAGE_DATA = """SELECT DISTINCT topics.id, topics.topic_name, topic
                                 (SELECT MAX(messages.created) FROM messages, threads WHERE messages.thread_id = threads.id AND threads.topic_id = topics.id) as latest_msg
                                 FROM topics"""
 
-SQL_GET_RESTRICTED_TOPICS = "SELECT user_id, topic_id FROM restricted_topic_users"
+SQL_GET_RESTRICTED_TOPIC_USERS = "SELECT user_id, topic_id FROM restricted_topic_users"
+SQL_GET_RESTRICTED_TOPIC_USER = "SELECT user_id, topic_id FROM restricted_topic_users WHERE user_id=:user_id AND topic_id=:topic_id"
+SQL_GET_RESTRICTED_TOPICS = "SELECT id, topic_name FROM topics where restricted_access = TRUE"
+SQL_INSERT_USER_TO_RESTRICTED_TOPIC = "INSERT INTO restricted_topic_users (user_id, topic_id) VALUES (:user_id, :topic_id)"
 
 SQL_GET_THREADS_PAGE_DATA = """SELECT threads.id, threads.topic_id, threads.title, threads.created, threads.created_by, threads.updated,
                                 (SELECT COUNT(*) FROM messages WHERE threads.topic_id=:topic_id AND messages.thread_id = threads.id) as thread_count,
                                 (SELECT MAX(messages.created) FROM messages WHERE messages.thread_id = threads.id) as latest_msg
                                 FROM threads WHERE threads.topic_id=:topic_id """
+
+SQL_GET_ALL_USERS = """SELECT id, username FROM users WHERE is_admin = False"""
 
 
 def register(username, password, is_admin):
@@ -48,11 +53,17 @@ def find_user_by_username(username: str):
         db.session.close()
 
 
+def find_all_users():
+    try:
+        return db.session.execute(SQL_GET_ALL_USERS).fetchall()
+    except Exception as e:
+        db.session.close()
+
+
 def find_user_by_id(id: int):
     try:
         return db.session.execute(SQL_GET_USER_BY_ID, {"id": id}).fetchone()
     except Exception as e:
-        print(e)
         db.session.close()
 
 
@@ -74,7 +85,6 @@ def get_all_topics():
     try:
         return db.session.execute(SQL_GET_TOPIC_PAGE_DATA).fetchall()
     except Exception as e:
-        print(e)
         db.session.close()
 
 
@@ -85,11 +95,41 @@ def get_topic_by_id(id):
         db.session.close()
 
 
+def get_restricted_topics_and_users():
+    try:
+        return db.session.execute(SQL_GET_RESTRICTED_TOPIC_USERS).fetchall()
+    except Exception as e:
+        db.session.close()
+
+
+def get_restricted_topic_user(user_id: int, topic_id: int):
+    try:
+        return db.session.execute(SQL_GET_RESTRICTED_TOPIC_USER, {"user_id": user_id, "topic_id": topic_id}).first() is not None
+    except Exception as e:
+        db.session.close()
+
+
 def get_restricted_topics():
     try:
         return db.session.execute(SQL_GET_RESTRICTED_TOPICS).fetchall()
     except Exception as e:
+        print(e)
         db.session.close()
+
+
+def add_user_access_to_restricted_topic(user_id: int, topic_id: int):
+    succeed: bool = True
+    try:
+        db.session.execute(SQL_INSERT_USER_TO_RESTRICTED_TOPIC, {
+                           "user_id": user_id, "topic_id": topic_id})
+    except Exception as e:
+        print(e)
+        db.session.close()
+        succeed = False
+    else:
+        db.session.commit()
+
+    return succeed
 
 
 def add_topic(topic: Topic):

@@ -30,7 +30,8 @@ CREATE TABLE topics (
 CREATE TABLE restricted_topic_users (
     user_id INT NOT NULL REFERENCES users(id),
     topic_id INT NOT NULL REFERENCES topics(id),
-    PRIMARY KEY (user_id, topic_id)
+    PRIMARY KEY (user_id, topic_id),
+    grant_date TIMESTAMP DEFAULT NOW()
 );
 
 CREATE TABLE threads (

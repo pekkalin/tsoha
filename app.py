@@ -10,6 +10,8 @@ from werkzeug.security import check_password_hash, generate_password_hash
 import service
 from model import Message, MThread, Topic
 
+# from wtforms
+
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = getenv("DATABASE_URL")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = getenv("TRACK_MODIFICATIONS")
@@ -123,19 +125,17 @@ def register():
 @app.route("/topic", methods=['GET', 'POST'])
 @login_required
 def topic():
-    all_topics = []
     filtered_topics = []
-    restricted_topics = []
 
     if request.method == "GET":
         all_topics = service.get_all_topics()
-        restricted_topics = service.get_restricted_topics()
+        restricted_topics = service.get_restricted_topics_and_users()
 
         # Filter restricted topics
-        filtered_topics = filter(lambda t: not t.restricted_access or t.restricted_access and (
+        filtered_topics = filter(lambda t: not t.restricted_access or current_user.is_admin or t.restricted_access and (
             current_user.id, t.id) in restricted_topics, all_topics)
 
-    elif request.method == "POST":
+    elif request.method == 'POST':
         restricted = False
         if 'restricted' in request.form:
             restricted = True
@@ -143,9 +143,12 @@ def topic():
         service.add_topic(Topic(topic_name=request.form['topic'],
                                 restricted_access=restricted, created="", created_by=current_user.id, updated=""))
         all_topics = service.get_all_topics()
+        restricted_topics = service.get_restricted_topics_and_users()
         # Filter restricted topics
-        filtered_topics = filter(lambda t: not t.restricted_access or t.restricted_access and (
+        filtered_topics = filter(lambda t: not t.restricted_access or current_user.is_admin or t.restricted_access and (
             current_user.id, t.id) in restricted_topics, all_topics)
+
+        return render_template("topics.html", topics=filtered_topics)
 
     return render_template("topics.html", topics=filtered_topics)
 
@@ -201,6 +204,7 @@ def message(thread_id, topic_id):
 
 
 @app.route("/message", methods=['POST'])
+@login_required
 def new_message():
     thread_id = request.form['thread_id']
     content = request.form['message']
@@ -211,6 +215,33 @@ def new_message():
     service.add_message(message)
 
     return redirect(url_for('message', thread_id=thread_id, topic_id=topic_id))
+
+
+@app.route("/admin", methods=['GET', 'POST'])
+@login_required
+def admin():
+    users = []
+    restricted_topics = []
+    users = service.find_all_users()
+    restricted_topics = service.get_restricted_topics()
+
+    if request.method == "GET":
+        return render_template("admin.html", users=users, restricted_topics=restricted_topics)
+    elif request.method == "POST":
+        user_id = request.form['user']
+        topic_id = request.form['topic']
+        user = service.get_restricted_topic_user(user_id, topic_id)
+
+        if user:
+            flash("Käyttäjällä on jo oikeus aihealueelle!")
+            return redirect(url_for('admin', users=users, restricted_topics=restricted_topics))
+        else:
+            if service.add_user_access_to_restricted_topic(user_id, topic_id):
+                flash(f"Käyttäjä lisätty oikeus aihealueelle!")
+            else:
+                flash("Käyttäjän lisääminen aihealueen käytttäjäksi epäonnistui!")
+                return redirect(url_for('admin', users=users, restricted_topics=restricted_topics))
+    return render_template("admin.html", users=users, restricted_topics=restricted_topics)
 
 
 if __name__ == "__main__":
