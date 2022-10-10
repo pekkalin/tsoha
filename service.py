@@ -13,7 +13,9 @@ SQL_GET_TOPIC_BY_ID = "SELECT id, topic_name, restricted_access, created, create
 SQL_INSERT_TOPIC = "INSERT INTO topics (topic_name, restricted_access, created_by) VALUES (:topic_name, :restricted_access, :created_by) RETURNING id"
 SQL_ADD_NEW_THREAD = "INSERT INTO threads (topic_id, title, created_by) VALUES (:topic_id, :title, :created_by) RETURNING id"
 SQL_ADD_NEW_MESSAGE = "INSERT INTO messages (thread_id, content, created_by) VALUES (:thread_id, :content, :created_by) RETURNING id"
-SQL_GET_MESSAGES_BY_THREAD_ID = "SELECT id, thread_id, content, created, created_by, updated  FROM messages WHERE thread_id=:thread_id"
+SQL_GET_MESSAGES_BY_THREAD_ID = """SELECT messages.id, messages.thread_id, messages.content, messages.created, messages.created_by,
+                                   messages.updated, users.username FROM messages, users WHERE messages.thread_id=:thread_id
+                                   AND messages.created_by=users.id"""
 SQL_DELETE_MESSAGES = "DELETE FROM messages WHERE id in :ids"
 SQL_COUNT_MESSAGES_BY_THREAD_ID = "SELECT COUNT(*) from messages WHERE thread_id=:thread_id"
 SQL_GET_TOPIC_PAGE_DATA = """SELECT DISTINCT topics.id, topics.topic_name, topics.restricted_access, topics.created, topics.created_by, topics.updated,
@@ -193,6 +195,7 @@ def get_messages_by_thread_id(thread_id: int):
     try:
         return db.session.execute(SQL_GET_MESSAGES_BY_THREAD_ID, {"thread_id": thread_id}).fetchall()
     except Exception as e:
+        print(e)
         db.session.close()
 
 

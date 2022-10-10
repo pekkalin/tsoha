@@ -40,11 +40,16 @@
             {% for message in messages %}
             <div class="row mb-3">
                 <div class="col-md-1 bg-light form-check">
+                    {% if message.created_by == current_user.id %}
                     <input class="form-check-input" type="checkbox" value={{message.id}} id="remove"
                         name="removable_messages">
+                    {% else %}
+                    <input class="form-check-input" type="checkbox" value={{message.id}} id="remove"
+                        name="removable_messages" disabled="disabled">
+                    {% endif %}
                 </div>
                 <div class="col-md-2 bg-light">
-                    {{ current_user.username}}
+                    {{ message.username }}
                 </div>
                 <div class="col-md-9 bg-light">
                     {{message.content}}
