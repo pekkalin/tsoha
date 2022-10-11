@@ -207,12 +207,13 @@ def new_message():
     thread_id = request.form['thread_id']
     content = request.form['message']
     topic_id = request.form['topic_id']
+    print(len(content))
 
     if len(content) < 1:
         flash("Viesti ei voi olla tyhjä!", category='add_error')
         return redirect(url_for('message', thread_id=thread_id, topic_id=topic_id))
 
-    message = Message(thread_id=thread_id, content=content,
+    message = Message(thread_id=thread_id, content=content.strip(),
                       created="", created_by=current_user.id, updated="")
     service.add_message(message)
 
@@ -249,8 +250,8 @@ def admin():
 @app.route("/message/remove", methods=['POST'])
 @login_required
 def remove_messages():
-    print(request.form.getlist('removable_messages'))
     removables = request.form.getlist('removable_messages')
+
     thread_id = request.form['thread_id']
     topic_id = request.form['topic_id']
 
@@ -267,6 +268,19 @@ def remove_messages():
     else:
         flash("Viestien poistossa tapahtui virhe", category='remove_error')
         return redirect(url_for('message', thread_id=thread_id, topic_id=topic_id))
+
+
+@app.route("/thread/remove", methods=['POST'])
+@login_required
+def remove_threads():
+    removables = request.form.getlist('removable_threads')
+    print(removables)
+
+    if len(removables) == 0:
+        flash("Valitse poistettavat viestiketjut!", category='remove_error')
+    else:
+        return redirect(url_for('thread', topic=request.form['topic_id']))
+    # TODO removing..
 
 
 if __name__ == "__main__":

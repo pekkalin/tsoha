@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import bindparam, text
+from sqlalchemy import text
 
 from app import db
 from model import Message, MThread, Topic

@@ -45,7 +45,7 @@ CREATE TABLE threads (
 
 CREATE TABLE messages (
     id serial PRIMARY KEY,
-    thread_id INT REFERENCES threads(id),
+    thread_id INT REFERENCES threads(id) ON DELETE CASCADE,
     content VARCHAR (500),
     created TIMESTAMP DEFAULT NOW(),
     created_by INT REFERENCES users(id),

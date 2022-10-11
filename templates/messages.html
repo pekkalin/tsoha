@@ -12,10 +12,9 @@
             <div class="mb-3">
                 <label for="message" class="form-label">Uusi viesti</label>
             </div>
-            <div class="form-floating">
+            <div class="form-floating col-md-8">
                 <textarea class="form-control" placeholder="Kirjoita viestisi tähän" id="message" name="message"
                     style="height: 100px"></textarea>
-                <label for="message">Viesti</label>
             </div>
             <br />
             <div class="d-grid col-2">
@@ -30,6 +29,13 @@
 {% if messages|length > 0 %}
 <div class="card bg-white">
     <div class="card-body p-5">
+        <thead>
+            <div class="row mb-3">
+                <div class="col-md-2 bg-light">Valitse</div>
+                <div class="col-md-2 bg-light">Lähettäjä</div>
+                <div class="col-md-8 bg-light">Viesti</div>
+            </div>
+        </thead>
         {% for message in get_flashed_messages(category_filter=["remove_error"]) %}
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
             {{ message }}
@@ -39,8 +45,8 @@
         <form action="{{url_for('remove_messages')}}" method="post" class="mb-3 mt-md-4">
             {% for message in messages %}
             <div class="row mb-3">
-                <div class="col-md-1 bg-light form-check">
-                    {% if message.created_by == current_user.id %}
+                <div class="col-md-2 bg-light">
+                    {% if message.created_by == current_user.id or current_user.is_admin %}
                     <input class="form-check-input" type="checkbox" value={{message.id}} id="remove"
                         name="removable_messages">
                     {% else %}
@@ -51,9 +57,20 @@
                 <div class="col-md-2 bg-light">
                     {{ message.username }}
                 </div>
-                <div class="col-md-9 bg-light">
+                <!--<div class="col-md-8 bg-light">
                     {{message.content}}
+                </div> -->
+                {% if message.created_by == current_user.id %}
+                <div class="form-floating col-md-8 bg-light">
+                    <textarea class="form-control" id="message_content" name="message_content"
+                        style="height: 100px">{{message.content|trim}}</textarea>
                 </div>
+                {% else %}
+                <div class="form-floating col-md-8 bg-light">
+                    <textarea class="form-control" id="message_content" name="message_content" style="height: 100px"
+                        disabled="disabled">{{message.content|trim}}</textarea>
+                </div>
+                {% endif %}
             </div>
             {% endfor %}
             <br />
@@ -62,6 +79,9 @@
                     <a class="btn btn-sm btn-outline-dark" href="{{ url_for('thread', topic=topic_id) }}"
                         role="button">&lt;&lt;
                         viestiketjut</a>
+                </div>
+                <div class="d-grid col-2">
+                    <button class="btn btn-sm btn-outline-dark" type="submit">Muokkaa viestiä</button>
                 </div>
                 <div class="d-grid col-2">
                     <button class="btn btn-sm btn-outline-dark" type="submit">Poista viesti</button>

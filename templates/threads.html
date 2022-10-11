@@ -33,31 +33,46 @@
     <div class="card-body p-5">
         <thead>
             <div class="row mb-3">
-                <div class="col-md-8 bg-light">Viestiketju</div>
+                <div class="col-md-2 bg-light">Valitse</div>
+                <div class="col-md-6 bg-light">Viestiketju</div>
                 <div class="col-md-2 bg-light">Viestien määrä</div>
                 <div class="col-md-2 bg-light">Viimeisin viesti</div>
             </div>
         </thead>
-        {% for thread in threads %}
-        <div class="row mb-3">
-            <div class="col-md-8 bg-light">
-                <a href="{{url_for('message',thread_id=thread.id, topic_id=topic_id)}}" class="text-secondary">{{
-                    thread.title }}</a>
+        <form action="{{url_for('remove_threads')}}" method="post" class="mb-3 mt-md-4">
+            {% for thread in threads %}
+            <div class="row mb-3">
+                <div class="col-md-2 bg-light">
+                    {% if current_user.is_admin %}
+                    <input class="form-check-input" type="checkbox" value={{thread.id}} id="remove"
+                        name="removable_threads">
+                    {% endif %}
+                </div>
+                <div class="col-md-6 bg-light">
+                    <a href="{{url_for('message',thread_id=thread.id, topic_id=topic_id)}}" class="text-secondary">{{
+                        thread.title }}</a>
+                </div>
+                <div class="col-md-2 bg-light">
+                    {{thread.thread_count}} kpl
+                </div>
+                <div class="col-md-2 bg-light">
+                    {% if thread.latest_msg != None %}
+                    {{ thread.latest_msg.strftime("%d.%m.%Y %H:%M") }}
+                    {% endif %}
+                </div>
             </div>
-            <div class="col-md-2 bg-light">
-                {{thread.thread_count}} kpl
+            {% endfor %}
+            <br />
+            <div class="row mb-3">
+                <div class="d-grid col-2">
+                    <a class="btn btn-sm btn-outline-dark" href="{{url_for('topic')}}" role="button">&lt;&lt; forum</a>
+                </div>
+                <div class="d-grid col-2">
+                    <button class="btn btn-sm btn-outline-dark" type="submit">Poista viesti</button>
+                </div>
             </div>
-            <div class="col-md-2 bg-light">
-                {% if thread.latest_msg != None %}
-                {{ thread.latest_msg.strftime("%d.%m.%Y %H:%M") }}
-                {% endif %}
-            </div>
-        </div>
-        {% endfor %}
-        <br />
-        <div class="d-grid col-1">
-            <a class="btn btn-sm btn-outline-dark" href="{{url_for('topic')}}" role="button">&lt;&lt; forum</a>
-        </div>
+            <input type="hidden" id="topic_id" name="topic_id" value={{topic_id}} />
+        </form>
     </div>
 </div>
 {% endif %}
