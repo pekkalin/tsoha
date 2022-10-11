@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 from os import getenv
 
@@ -214,7 +215,7 @@ def new_message():
         return redirect(url_for('message', thread_id=thread_id, topic_id=topic_id))
 
     message = Message(thread_id=thread_id, content=content.strip(),
-                      created="", created_by=current_user.id, updated="")
+                      created=datetime.now(), created_by=current_user.id, updated="")
     service.add_message(message)
 
     return redirect(url_for('message', thread_id=thread_id, topic_id=topic_id))
@@ -247,26 +248,63 @@ def admin():
     return render_template("admin.html", users=users, restricted_topics=restricted_topics)
 
 
-@app.route("/message/remove", methods=['POST'])
+@app.route("/message/update", methods=['POST'])
 @login_required
-def remove_messages():
-    removables = request.form.getlist('removable_messages')
+def remove_or_update_messages():
+    REMOVE_MESSAGES = "remove_messages"
+    MODIFY_MESSAGES = "modify_messages"
 
+    selected_messages = request.form.getlist('selected_message')
     thread_id = request.form['thread_id']
     topic_id = request.form['topic_id']
+    button_pressed = request.form['messages_button']
 
-    if len(removables) == 0:
-        flash("Valitse poistettavat viestit!", category='remove_error')
+    # Check if we want to remove or modify messages
+    if button_pressed == REMOVE_MESSAGES:
+        return _remove_messages(selected_messages, thread_id, topic_id)
+    elif button_pressed == MODIFY_MESSAGES:
+        return _update_messages(selected_messages, thread_id, topic_id)
+    else:
+        flash("Viestin muokkausessa tai poistossa tapahtui odottamaton virhe!",
+              category='remove_or_modify_error')
         return redirect(url_for('message', thread_id=thread_id, topic_id=topic_id))
 
-    if service.delete_messages(removables, thread_id):
+
+def _update_messages(selected_messages, thread_id, topic_id):
+    modified_messages = []
+    for key in request.form:
+        if key.startswith('message_content.'):
+            id = key.partition('.')[-1]
+            new_content = request.form[key]
+            if id in selected_messages:
+                modified_messages.append((id, new_content))
+
+    if len(modified_messages) == 0:
+        flash("Valitse muokattavat viestit!",
+              category='remove_or_modify_error')
+    else:
+        now = datetime.now()
+        for m in modified_messages:
+            service.update_messages(m[0], m[1], now)
+
+    return redirect(url_for('message', thread_id=thread_id, topic_id=topic_id))
+
+
+def _remove_messages(messages, thread_id, topic_id):
+    if len(messages) == 0:
+        flash("Valitse poistettavat viestit!",
+              category='remove_or_modify_error')
+        return redirect(url_for('message', thread_id=thread_id, topic_id=topic_id))
+
+    if service.delete_messages(messages, thread_id):
         if service.count_messages_by_thread(thread_id) == 0:
             service.delete_message_thread(thread_id)
             return redirect(url_for('thread', topic=topic_id))
         else:
             return redirect(url_for('message', thread_id=thread_id, topic_id=topic_id))
     else:
-        flash("Viestien poistossa tapahtui virhe", category='remove_error')
+        flash("Viestien poistossa tapahtui virhe",
+              category='remove_or_modify_error')
         return redirect(url_for('message', thread_id=thread_id, topic_id=topic_id))
 
 

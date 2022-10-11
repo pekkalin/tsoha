@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from sqlalchemy import text
 
 from app import db
@@ -12,11 +10,12 @@ SQL_UPDATE_LAST_LOGIN = "UPDATE users SET last_login=:last_login WHERE id=:id"
 SQL_GET_TOPIC_BY_ID = "SELECT id, topic_name, restricted_access, created, created_by, updated FROM topics WHERE id=:id"
 SQL_INSERT_TOPIC = "INSERT INTO topics (topic_name, restricted_access, created_by) VALUES (:topic_name, :restricted_access, :created_by) RETURNING id"
 SQL_ADD_NEW_THREAD = "INSERT INTO threads (topic_id, title, created_by) VALUES (:topic_id, :title, :created_by) RETURNING id"
-SQL_ADD_NEW_MESSAGE = "INSERT INTO messages (thread_id, content, created_by) VALUES (:thread_id, :content, :created_by) RETURNING id"
+SQL_ADD_NEW_MESSAGE = "INSERT INTO messages (thread_id, content, created, created_by) VALUES (:thread_id, :content, :created, :created_by) RETURNING id"
 SQL_GET_MESSAGES_BY_THREAD_ID = """SELECT messages.id, messages.thread_id, messages.content, messages.created, messages.created_by,
                                    messages.updated, users.username FROM messages, users WHERE messages.thread_id=:thread_id
-                                   AND messages.created_by=users.id"""
+                                   AND messages.created_by=users.id ORDER BY messages.created DESC"""
 SQL_DELETE_MESSAGES = "DELETE FROM messages WHERE id in :ids"
+SQL_UPDATE_MESSAGES = "UPDATE messages SET content=:new_content, updated=:updated WHERE id=:id"
 SQL_COUNT_MESSAGES_BY_THREAD_ID = "SELECT COUNT(*) from messages WHERE thread_id=:thread_id"
 SQL_GET_TOPIC_PAGE_DATA = """SELECT DISTINCT topics.id, topics.topic_name, topics.restricted_access, topics.created, topics.created_by, topics.updated,
                                 (SELECT COUNT(*) FROM threads WHERE threads.topic_id = topics.id) as thread_count,
@@ -182,7 +181,7 @@ def add_message(message: Message):
 
     try:
         message_id = db.session.execute(SQL_ADD_NEW_MESSAGE, {
-            "thread_id": message.thread_id, "content": message.content, "created_by": message.created_by}).fetchone()[0]
+            "thread_id": message.thread_id, "content": message.content, "created": message.created, "created_by": message.created_by}).fetchone()[0]
     except Exception as e:
         db.session.close()
     else:
@@ -215,6 +214,17 @@ def delete_messages(message_ids: list, thread_id: int):
         db.session.commit()
 
     return deleted
+
+
+def update_messages(id: int, new_content: str, now):
+    try:
+        db.session.execute(SQL_UPDATE_MESSAGES, {
+                           "new_content": new_content, "updated": now, "id": id})
+    except Exception as e:
+        print(e)
+        db.session.close()
+    else:
+        db.session.commit()
 
 
 def count_messages_by_thread(thread_id: int):

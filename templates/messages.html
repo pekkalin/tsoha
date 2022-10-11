@@ -36,39 +36,36 @@
                 <div class="col-md-8 bg-light">Viesti</div>
             </div>
         </thead>
-        {% for message in get_flashed_messages(category_filter=["remove_error"]) %}
+        {% for message in get_flashed_messages(category_filter=["remove_or_modify_error"]) %}
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
             {{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
         {% endfor %}
-        <form action="{{url_for('remove_messages')}}" method="post" class="mb-3 mt-md-4">
+        <form action="{{url_for('remove_or_update_messages')}}" method="post" class="mb-3 mt-md-4">
             {% for message in messages %}
             <div class="row mb-3">
                 <div class="col-md-2 bg-light">
                     {% if message.created_by == current_user.id or current_user.is_admin %}
                     <input class="form-check-input" type="checkbox" value={{message.id}} id="remove"
-                        name="removable_messages">
+                        name="selected_message">
                     {% else %}
                     <input class="form-check-input" type="checkbox" value={{message.id}} id="remove"
-                        name="removable_messages" disabled="disabled">
+                        name="selected_message" disabled="disabled">
                     {% endif %}
                 </div>
                 <div class="col-md-2 bg-light">
                     {{ message.username }}
                 </div>
-                <!--<div class="col-md-8 bg-light">
-                    {{message.content}}
-                </div> -->
                 {% if message.created_by == current_user.id %}
                 <div class="form-floating col-md-8 bg-light">
-                    <textarea class="form-control" id="message_content" name="message_content"
+                    <textarea class="form-control" id={{message.id}} name="message_content.{{message.id}}"
                         style="height: 100px">{{message.content|trim}}</textarea>
                 </div>
                 {% else %}
                 <div class="form-floating col-md-8 bg-light">
-                    <textarea class="form-control" id="message_content" name="message_content" style="height: 100px"
-                        disabled="disabled">{{message.content|trim}}</textarea>
+                    <textarea class="form-control" id={{message.id}} name="message_content.{{message.id}}"
+                        style="height: 100px" disabled="disabled">{{message.content|trim}}</textarea>
                 </div>
                 {% endif %}
             </div>
@@ -81,10 +78,12 @@
                         viestiketjut</a>
                 </div>
                 <div class="d-grid col-2">
-                    <button class="btn btn-sm btn-outline-dark" type="submit">Muokkaa viestiä</button>
+                    <button class="btn btn-sm btn-outline-dark" type="submit" id="modify_button" name="messages_button"
+                        value="modify_messages">Muokkaa viestiä</button>
                 </div>
                 <div class="d-grid col-2">
-                    <button class="btn btn-sm btn-outline-dark" type="submit">Poista viesti</button>
+                    <button class="btn btn-sm btn-outline-dark" type="submit" id="remove_button" name="messages_button"
+                        value="remove_messages">Poista viesti</button>
                 </div>
             </div>
             <input type="hidden" id="thread_id" name="thread_id" value={{thread_id}} />
